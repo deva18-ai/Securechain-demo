@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureChain — Demo Mode</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d12;
+  --bg2:#10131a;
+  --panel:#141821;
+  --panel2:#191e29;
+  --border:#262b37;
+  --border-strong:#333a4a;
+  --accent:#3d6fe0;
+  --accent-hover:#517ded;
+  --accent-text:#eef2ff;
+  --violet:#7d72d6;
+  --green:#2fa872;
+  --yellow:#c99a3e;
+  --red:#dd5b64;
+  --text:#e6e9ef;
+  --muted:#8991a3;
+  --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  background:
+    radial-gradient(1100px 550px at 8% -8%, rgba(61,111,224,0.07), transparent 60%),
+    radial-gradient(900px 550px at 105% 0%, rgba(125,114,214,0.06), transparent 55%),
+    var(--bg);
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--sans);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ---------- Utility ---------- */
+.hidden{display:none !important;}
+a{color:inherit;}
+button{font-family:inherit;cursor:pointer;}
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 9px;border-radius:4px;font-size:11px;font-weight:600;
+  letter-spacing:.02em;border:1px solid transparent;
+}
+.badge.pending{background:rgba(201,154,62,0.1);color:var(--yellow);border-color:rgba(201,154,62,0.3);}
+.badge.approved{background:rgba(47,168,114,0.1);color:var(--green);border-color:rgba(47,168,114,0.3);}
+.badge.rejected{background:rgba(221,91,100,0.1);color:var(--red);border-color:rgba(221,91,100,0.3);}
+.badge.executed{background:rgba(61,111,224,0.12);color:#9db4ec;border-color:rgba(61,111,224,0.32);}
+.badge.active{background:rgba(47,168,114,0.1);color:var(--green);border-color:rgba(47,168,114,0.3);}
+.badge.protected{background:rgba(125,114,214,0.12);color:#b3aae4;border-color:rgba(125,114,214,0.32);}
+.badge.verified{background:rgba(47,168,114,0.1);color:var(--green);border-color:rgba(47,168,114,0.3);}
+.badge.info{background:rgba(61,111,224,0.12);color:#9db4ec;border-color:rgba(61,111,224,0.32);}
+.badge.warning{background:rgba(201,154,62,0.1);color:var(--yellow);border-color:rgba(201,154,62,0.3);}
+.badge.success{background:rgba(47,168,114,0.1);color:var(--green);border-color:rgba(47,168,114,0.3);}
+.badge.security{background:rgba(221,91,100,0.1);color:var(--red);border-color:rgba(221,91,100,0.3);}
+.badge.blockchain{background:rgba(125,114,214,0.12);color:#b3aae4;border-color:rgba(125,114,214,0.32);}
+
+.icon{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;}
+
+/* ---------- Landing Page ---------- */
+#landingScreen{
+  min-height:100vh;display:none;flex-direction:column;
+  background:
+    radial-gradient(1200px 600px at 12% -10%, rgba(61,111,224,0.16), transparent 60%),
+    radial-gradient(900px 520px at 108% 8%, rgba(125,114,214,0.13), transparent 55%),
+    var(--bg);
+}
+.landing-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 48px;max-width:1240px;margin:0 auto;width:100%;box-sizing:border-box;
+}
+.landing-nav .brand{margin-bottom:0;}
+.landing-nav-links{display:flex;gap:22px;align-items:center;}
+.landing-nav-links a{
+  color:var(--muted);font-size:13.5px;font-weight:500;cursor:pointer;transition:color .15s;
+}
+.landing-nav-links a:hover{color:var(--text);}
+.landing-hero{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:64px 24px 44px;max-width:920px;margin:0 auto;width:100%;box-sizing:border-box;
+}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;
+  background:var(--panel2);border:1px solid var(--border-strong);font-size:11.5px;font-weight:700;
+  color:var(--violet);margin-bottom:26px;letter-spacing:.06em;text-transform:uppercase;
+}
+.hero-title{font-size:46px;line-height:1.14;font-weight:700;letter-spacing:-.02em;margin:0 0 18px;}
+.hero-title span{
+  background:linear-gradient(120deg,#8ea6f2,#b0a4f2 45%,#7d72d6);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero-sub{color:var(--muted);font-size:16px;line-height:1.65;max-width:600px;margin:0 0 34px;}
+.hero-ctas{display:flex;gap:14px;margin-bottom:8px;flex-wrap:wrap;justify-content:center;}
+.btn-lg{padding:13px 28px;font-size:14.5px;border-radius:8px;}
+.hero-note{margin-top:16px;font-size:12px;color:var(--muted);}
+.landing-section{max-width:1140px;margin:0 auto;width:100%;padding:0 24px;box-sizing:border-box;}
+.landing-feature-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:54px auto 60px;
+}
+@media(max-width:980px){.landing-feature-grid{grid-template-columns:repeat(2,1fr);}.hero-title{font-size:34px;}}
+@media(max-width:560px){.landing-feature-grid{grid-template-columns:1fr;}}
+.feature-card{
+  background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:left;
+  transition:border-color .15s,transform .15s,box-shadow .15s;
+}
+.feature-card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,0.25);}
+.feature-icon{
+  width:34px;height:34px;border-radius:8px;background:rgba(61,111,224,0.14);color:#9db4ec;
+  display:flex;align-items:center;justify-content:center;margin-bottom:12px;
+}
+.feature-title{font-weight:600;font-size:14.5px;margin-bottom:6px;}
+.feature-desc{font-size:12.5px;color:var(--muted);line-height:1.55;}
+.landing-flow-wrap{
+  background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:30px 34px;margin-bottom:60px;
+}
+.landing-flow-title{font-size:18px;font-weight:700;margin-bottom:20px;}
+.landing-footer{
+  text-align:center;padding:26px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:auto;
+}
+
+/* ---------- Login ---------- */
+#loginScreen{
+  min-height:100vh;display:none;align-items:center;justify-content:center;padding:20px;position:relative;
+  background:radial-gradient(760px 400px at 88% 108%, rgba(125,114,214,0.12), transparent 60%);
+}
+.login-back{
+  position:absolute;top:24px;left:26px;display:flex;align-items:center;gap:6px;
+  font-size:12.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:color .15s;
+}
+.login-back:hover{color:var(--text);}
+.login-card{
+  width:100%;max-width:960px;
+  background:var(--panel);
+  border:1px solid var(--border);border-radius:12px;
+  box-shadow:0 24px 48px -12px rgba(0,0,0,0.45);
+  display:grid;grid-template-columns:1.1fr 1fr;overflow:hidden;
+}
+@media(max-width:800px){.login-card{grid-template-columns:1fr;}}
+.login-left{
+  padding:44px 40px;border-right:1px solid var(--border);
+  background:
+    linear-gradient(var(--bg2),var(--bg2)) padding-box,
+    repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 28px);
+  background-color:var(--bg2);
+}
+.login-right{padding:44px 40px;background:var(--panel);}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+.brand-mark{
+  width:36px;height:36px;border-radius:8px;
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+}
+.brand-name{font-size:20px;font-weight:700;letter-spacing:.01em;}
+.brand-sub{color:var(--muted);font-size:13px;margin:2px 0 30px;}
+.demo-pill{
+  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;
+  padding:4px 10px;border-radius:4px;background:rgba(201,154,62,0.1);
+  color:var(--yellow);border:1px solid rgba(201,154,62,0.3);margin-bottom:22px;
+}
+.login-note{
+  font-size:12.5px;line-height:1.6;color:var(--muted);
+  background:var(--panel2);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;margin-top:24px;
+}
+.flow-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;}
+.flow-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:7px;flex-shrink:0;}
+.flow-text b{color:var(--text);}
+.flow-text{color:var(--muted);font-size:13px;line-height:1.5;}
+
+.acct-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.acct{
+  border:1px solid var(--border);border-radius:8px;padding:13px 16px;
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  background:var(--bg2);transition:border-color .15s,background .15s;cursor:pointer;
+}
+.acct:hover{border-color:var(--border-strong);background:var(--panel2);}
+.acct-role{font-weight:600;font-size:14px;}
+.acct-cred{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:4px;}
+.acct-use{
+  font-size:11px;font-weight:600;color:var(--text);border:1px solid var(--border-strong);
+  padding:5px 10px;border-radius:6px;background:transparent;
+}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+.field input{
+  width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--text);font-size:13.5px;font-family:inherit;
+}
+.field input:focus{outline:none;border-color:var(--accent);}
+.btn{
+  border:none;border-radius:6px;padding:10px 16px;font-weight:600;font-size:13.5px;
+  transition:background .15s,border-color .15s,color .15s;display:inline-flex;align-items:center;gap:6px;justify-content:center;
+}
+.btn-primary{background:var(--accent);color:var(--accent-text);}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-outline{background:transparent;border:1px solid var(--border-strong);color:var(--text);}
+.btn-outline:hover{border-color:var(--muted);}
+.btn-danger{background:rgba(221,91,100,0.12);color:var(--red);border:1px solid rgba(221,91,100,0.35);}
+.btn-danger:hover{background:rgba(221,91,100,0.2);}
+.btn-success{background:var(--green);color:#0a1a12;}
+.btn-success:hover{filter:brightness(1.08);}
+.btn-block{width:100%;}
+.login-error{color:var(--red);font-size:12.5px;margin-top:6px;display:none;}
+
+/* ---------- App Shell ---------- */
+#app{display:none;min-height:100vh;grid-template-columns:250px 1fr;}
+#app.shown{display:grid;}
+.sidebar{
+  background:var(--panel);border-right:1px solid var(--border);
+  padding:20px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+  box-shadow:2px 0 16px rgba(0,0,0,0.22);z-index:1;
+}
+.side-brand{display:flex;align-items:center;gap:10px;padding:0 6px 18px;border-bottom:1px solid var(--border);margin-bottom:14px;}
+.side-brand .brand-mark{width:30px;height:30px;border-radius:8px;}
+.side-brand-text b{font-size:14.5px;display:block;letter-spacing:.01em;}
+.side-brand-text span{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.06em;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;
+  color:var(--muted);font-size:13.5px;font-weight:500;margin-bottom:2px;
+  border-left:2px solid transparent;transition:background .15s,color .15s,border-color .15s;
+}
+.nav-item:hover{background:var(--panel2);color:var(--text);}
+.nav-item.active{background:var(--panel2);color:var(--text);border-left-color:var(--accent);font-weight:600;}
+.side-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:14px;}
+.who{display:flex;align-items:center;gap:10px;padding:6px;margin-bottom:10px;}
+.who-avatar{
+  width:32px;height:32px;border-radius:6px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;color:var(--accent-text);
+}
+.who-name{font-size:13px;font-weight:600;}
+.who-role{font-size:10.5px;color:var(--muted);letter-spacing:.04em;}
+
+.main{padding:26px 30px;max-width:1400px;}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+.page-title{font-size:20px;font-weight:700;letter-spacing:-.01em;}
+.page-sub{color:var(--muted);font-size:13px;margin-top:4px;}
+
+.grid{display:grid;gap:14px;}
+.grid-4{grid-template-columns:repeat(4,1fr);}
+.grid-3{grid-template-columns:repeat(3,1fr);}
+.grid-2{grid-template-columns:repeat(2,1fr);}
+@media(max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr);}.grid-3{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:700px){.grid-4,.grid-3,.grid-2{grid-template-columns:1fr;}#app.shown{grid-template-columns:1fr;}.sidebar{position:relative;height:auto;}}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);border-radius:8px;padding:18px;
+  box-shadow:0 1px 2px rgba(0,0,0,0.18);
+}
+.card.glow{border-color:var(--border-strong);}
+.stat-card{display:flex;flex-direction:column;gap:6px;}
+.stat-top{display:flex;justify-content:space-between;align-items:center;}
+.stat-label{font-size:11.5px;color:var(--muted);letter-spacing:.03em;font-weight:600;}
+.stat-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--border);color:var(--muted);}
+.stat-value{font-size:28px;font-weight:700;letter-spacing:-.01em;}
+.stat-foot{font-size:11.5px;color:var(--muted);}
+
+.section-title{font-size:14px;font-weight:600;margin:26px 0 12px;display:flex;align-items:center;gap:8px;color:var(--text);}
+.section-title:first-child{margin-top:0;}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{
+  text-align:left;color:var(--muted);font-size:11px;letter-spacing:.03em;
+  padding:10px 12px;border-bottom:1px solid var(--border);font-weight:600;
+}
+td{padding:12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr.row-hover:hover{background:var(--panel2);}
+.mono{font-family:var(--mono);font-size:12px;color:var(--muted);}
+.table-wrap{overflow-x:auto;}
+.actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:5px;}
+
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;}
+.asset-card{border:1px solid var(--border);border-radius:8px;padding:16px;background:var(--panel);cursor:pointer;transition:border-color .15s;}
+.asset-card:hover{border-color:var(--border-strong);}
+.asset-id{font-family:var(--mono);color:var(--muted);font-size:12px;}
+.asset-name{font-weight:600;margin:6px 0 4px;font-size:14.5px;}
+.asset-meta{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.asset-foot{display:flex;justify-content:space-between;align-items:center;}
+
+.locked-panel{
+  border:1px solid var(--border);border-radius:8px;padding:18px;
+  color:var(--muted);font-size:13px;display:flex;gap:10px;align-items:flex-start;background:var(--panel2);
+}
+.locked-panel b{color:var(--red);}
+
+.security-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media(max-width:700px){.security-grid{grid-template-columns:1fr;}}
+.sec-row{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);border-radius:6px;padding:12px 14px;background:var(--panel);}
+.sec-name{font-size:13px;font-weight:500;}
+.sec-status{font-size:12px;font-weight:600;color:var(--green);}
+
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-item{display:flex;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+.tl-item:last-child{border-bottom:none;}
+.tl-dot{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.tl-body{flex:1;}
+.tl-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.tl-msg{font-size:13.5px;font-weight:600;}
+.tl-meta{font-size:11.5px;color:var(--muted);margin-top:3px;}
+
+/* Bar chart */
+.bar-chart{display:flex;align-items:flex-end;gap:10px;height:140px;padding-top:10px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%;}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;background:var(--accent);min-height:4px;}
+.bar-label{font-size:10.5px;color:var(--muted);text-align:center;}
+
+/* Modal */
+.overlay{
+  position:fixed;inset:0;background:rgba(5,7,11,0.6);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;z-index:100;padding:16px;
+}
+.modal{
+  background:var(--panel);border:1px solid var(--border-strong);
+  border-radius:10px;padding:26px;max-width:520px;width:100%;box-shadow:0 24px 48px -12px rgba(0,0,0,0.55);
+  max-height:88vh;overflow-y:auto;
+}
+.modal h3{margin:0 0 4px;font-size:17px;font-weight:700;}
+.modal .modal-sub{color:var(--muted);font-size:12.5px;margin-bottom:18px;}
+.modal-close{float:right;background:transparent;border:none;color:var(--muted);font-size:20px;line-height:1;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.kv:last-child{border-bottom:none;}
+.kv span:first-child{color:var(--muted);}
+.diff-box{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+.diff-col{border:1px solid var(--border);border-radius:8px;padding:12px;}
+.diff-col.before{background:rgba(221,91,100,0.05);}
+.diff-col.after{background:rgba(47,168,114,0.05);}
+.diff-label{font-size:10.5px;letter-spacing:.04em;color:var(--muted);margin-bottom:6px;font-weight:600;}
+select,textarea{
+  width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);
+  background:var(--bg2);color:var(--text);font-size:13.5px;font-family:inherit;
+}
+textarea{resize:vertical;min-height:70px;}
+
+/* Toasts */
+#toastHost{position:fixed;top:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:10px;}
+.toast{
+  min-width:280px;max-width:360px;background:var(--panel2);border:1px solid var(--border-strong);
+  border-left:3px solid var(--accent);border-radius:6px;padding:12px 14px;
+  box-shadow:0 10px 24px rgba(0,0,0,0.35);font-size:13px;animation:slidein .2s ease;
+}
+.toast.success{border-left-color:var(--green);}
+.toast.error{border-left-color:var(--red);}
+.toast.warning{border-left-color:var(--yellow);}
+@keyframes slidein{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+.toast-title{font-weight:600;margin-bottom:2px;}
+.toast-msg{color:var(--muted);font-size:12px;}
+
+.demo-banner{
+  background:var(--panel2);
+  border:1px solid var(--border);border-left:3px solid var(--yellow);border-radius:6px;padding:10px 14px;
+  font-size:12px;color:var(--muted);margin-bottom:20px;display:flex;gap:8px;align-items:center;font-weight:500;
+}
+.demo-banner .icon{color:var(--yellow);}
+.pageview{display:none;}
+.pageview.active{display:block;}
+</style>
+</head>
+<body>
+
+<div id="toastHost"></div>
+
+<!-- ================= LANDING PAGE ================= -->
+<div id="landingScreen">
+  <div class="landing-nav">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg class="icon" style="width:20px;height:20px;stroke:#eef2ff" viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-4z"/></svg>
+      </div>
+      <div class="brand-name">SECURECHAIN</div>
+    </div>
+    <div class="landing-nav-links">
+      <a onclick="document.getElementById('landingFeatures').scrollIntoView({behavior:'smooth'})">Features</a>
+      <a onclick="document.getElementById('landingFlow').scrollIntoView({behavior:'smooth'})">How it works</a>
+      <button class="btn btn-outline btn-sm" onclick="showLoginScreen()">Sign In</button>
+    </div>
+  </div>
+
+  <div class="landing-hero">
+    <div class="hero-badge">⛓ Demo Mode · Simulation Environment</div>
+    <div class="hero-title">Blockchain-secured asset &amp;<br><span>identity management</span></div>
+    <div class="hero-sub">SecureChain gives owners cryptographic control over every protected operation — while managers work fast and every action is verified, approved, and permanently recorded.</div>
+    <div class="hero-ctas">
+      <button class="btn btn-primary btn-lg" onclick="showLoginScreen()">Enter Demo Portal →</button>
+      <button class="btn btn-outline btn-lg" onclick="document.getElementById('landingFeatures').scrollIntoView({behavior:'smooth'})">Explore Features</button>
+    </div>
+    <div class="hero-note">Runs entirely in your browser · No real credentials, blockchain, or backend required.</div>
+  </div>
+
+  <div class="landing-section" id="landingFeatures">
+    <div class="landing-feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><circle cx="17" cy="8" r="2.5"/><path d="M16 14c2.8.3 5 2.4 5 6"/></svg></div>
+        <div class="feature-title">Role-Based Access</div>
+        <div class="feature-desc">Owner, Admin/Manager, and Employee roles each see exactly what they're permitted to — enforced in code, not just hidden UI.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M9 2h6l3 4v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6l3-4z"/><path d="M9 12h6M9 16h6"/></svg></div>
+        <div class="feature-title">Owner Approval Workflow</div>
+        <div class="feature-desc">Managers submit requests for protected operations; nothing executes until the Owner reviews and approves it.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="feature-title">Blockchain-Verified Records</div>
+        <div class="feature-desc">Every executed action is written to a simulated ledger with a transaction ID, block number, and confirmation status.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></div>
+        <div class="feature-title">Digital Identity (DID)</div>
+        <div class="feature-desc">Every user holds a decentralized identifier anchored to a wallet address instead of a central authority.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg></div>
+        <div class="feature-title">Full Audit Trail</div>
+        <div class="feature-desc">Every login, request, approval, rejection, and edit is logged chronologically for complete traceability.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+        <div class="feature-title">Owner Asset &amp; User Registry</div>
+        <div class="feature-desc">Owners register employees and assets directly, then grant time-limited edit permissions to admins on request.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div class="feature-title">Security Center</div>
+        <div class="feature-desc">Live control status and an interactive test that demonstrates a blocked unauthorized action in real time.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><svg class="icon" viewBox="0 0 24 24"><path d="M4 13h6V4H4v9zM14 20h6V4h-6v16zM4 20h6v-4H4v4z"/></svg></div>
+        <div class="feature-title">Live Dashboard</div>
+        <div class="feature-desc">Real-time counts of users, assets, pending approvals, and blockchain records tailored to each role.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="landing-section" id="landingFlow">
+    <div class="landing-flow-wrap">
+      <div class="landing-flow-title">How a protected operation gets executed</div>
+      <div class="flow-step"><div class="flow-dot"></div><div class="flow-text"><b>Manager/Admin</b> requests a protected operation (transfer, freeze, update, or edit access).</div></div>
+      <div class="flow-step"><div class="flow-dot"></div><div class="flow-text">Request enters <b>Pending Owner Approval</b> — it cannot be executed directly.</div></div>
+      <div class="flow-step"><div class="flow-dot"></div><div class="flow-text"><b>Owner</b> reviews, then approves or rejects.</div></div>
+      <div class="flow-step" style="margin-bottom:0;"><div class="flow-dot"></div><div class="flow-text">System executes the action, writes an <b>audit log</b>, and records a <b>simulated blockchain transaction</b>.</div></div>
+    </div>
+  </div>
+
+  <div class="landing-footer">SecureChain DEMO MODE — simulation environment. The real system (FastAPI, PostgreSQL, Redis, Solidity/Hardhat) lives in the project repository.</div>
+</div>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-left">
+      <div class="login-back" onclick="showLanding()">
+        <svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg> Back to home
+      </div>
+      <div class="brand" style="margin-top:26px;">
+        <div class="brand-mark">
+          <svg class="icon" style="width:20px;height:20px;stroke:#eef2ff" viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-4z"/></svg>
+        </div>
+        <div class="brand-name">SECURECHAIN</div>
+      </div>
+      <div class="brand-sub">Blockchain-Powered Secure Asset &amp; Identity Management</div>
+      <div class="demo-pill">DEMO MODE — SIMULATION ENVIRONMENT</div>
+
+      <div class="flow-step"><div class="flow-dot"></div><div class="flow-text"><b>Manager/Admin</b> requests a protected operation (transfer, freeze, update).</div></div>
+      <div class="flow-step"><div class="flow-dot"></div><div class="flow-text">Request enters <b>Pending Owner Approval</b> — it cannot be executed directly.</div></div>
+      <div class="flow-step"><div class="flow-dot"></div><div class="flow-text"><b>Owner</b> reviews, then approves or rejects.</div></div>
+      <div class="flow-step"><div class="flow-dot"></div><div class="flow-text">System executes the action, writes an <b>audit log</b>, and records a <b>simulated blockchain transaction</b>.</div></div>
+
+      <div class="login-note">
+        Simulation environment — blockchain and backend operations are simulated for demonstration.
+        This mode runs entirely offline in your browser (no server, database, or blockchain node). The real SecureChain architecture (FastAPI, PostgreSQL, Redis, Solidity/Hardhat) is untouched and lives in <span class="mono" style="color:var(--muted)">/frontend</span>, <span class="mono">/backend</span>, <span class="mono">/blockchain</span>, <span class="mono">/database</span>.
+      </div>
+    </div>
+
+    <div class="login-right">
+      <h3 style="margin:0 0 4px;font-size:18px;">Sign in to Demo</h3>
+      <div class="page-sub" style="margin-bottom:18px;">Choose a demo account or sign in manually. No real credentials required.</div>
+
+      <div class="acct-list">
+        <div class="acct" onclick="quickLogin('owner@securechain.demo','owner123')">
+          <div>
+            <div class="acct-role">👑 Owner</div>
+            <div class="acct-cred">owner@securechain.demo / owner123</div>
+          </div>
+          <div class="acct-use">USE</div>
+        </div>
+        <div class="acct" onclick="quickLogin('manager@securechain.demo','manager123')">
+          <div>
+            <div class="acct-role">🛡️ Admin / Manager</div>
+            <div class="acct-cred">manager@securechain.demo / manager123</div>
+          </div>
+          <div class="acct-use">USE</div>
+        </div>
+        <div class="acct" onclick="quickLogin('employee@securechain.demo','employee123')">
+          <div>
+            <div class="acct-role">👤 Employee</div>
+            <div class="acct-cred">employee@securechain.demo / employee123</div>
+          </div>
+          <div class="acct-use">USE</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="text" id="loginEmail" placeholder="you@securechain.demo">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <div class="login-error" id="loginError">Invalid demo credentials. Try one of the accounts above.</div>
+      <button class="btn btn-primary btn-block" style="margin-top:8px;" onclick="attemptLogin()">Sign In</button>
+      <div style="text-align:center;margin-top:14px;font-size:11.5px;color:var(--muted);">
+        DEMO credentials only — not connected to any real authentication service.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP SHELL ================= -->
+<div id="app">
+  <div class="sidebar">
+    <div class="side-brand">
+      <div class="brand-mark">
+        <svg class="icon" style="width:16px;height:16px;stroke:#eef2ff" viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-4z"/></svg>
+      </div>
+      <div class="side-brand-text"><b>SECURECHAIN</b><span>DEMO MODE</span></div>
+    </div>
+    <div id="navList"></div>
+    <div class="side-footer">
+      <div class="who">
+        <div class="who-avatar" id="whoAvatar">?</div>
+        <div>
+          <div class="who-name" id="whoName">—</div>
+          <div class="who-role" id="whoRole">—</div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-block" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="demo-banner">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      DEMO MODE — Simulation environment. Blockchain and backend operations are simulated for demonstration; the real system lives in the SecureChain repository.
+    </div>
+    <div id="viewHost"></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   SECURECHAIN — STANDALONE DEMO MODE
+   Fully client-side simulation. No network, no build step, no backend.
+   ===================================================================== */
+
+const STORAGE_KEY = "securechain_demo_state_v1";
+
+function seedData(){
+  return {
+    users: [
+      {id:"U-001", name:"Olivia Grant", email:"owner@securechain.demo", password:"owner123", role:"OWNER", status:"ACTIVE", did:"did:securechain:owner-001", wallet:"0x9F2c1B7e8aD3f0C4b6E1a5D2f8C7b3A90eE1F001", created:"2026-01-12"},
+      {id:"U-002", name:"Marcus Reyes", email:"manager@securechain.demo", password:"manager123", role:"MANAGER", status:"ACTIVE", did:"did:securechain:manager-002", wallet:"0x7A4e2C9b1Df6A03c5B8e2F1a9D4c7B60fF20A91F", created:"2026-02-03"},
+      {id:"U-003", name:"Employee A (Priya Nair)", email:"employee@securechain.demo", password:"employee123", role:"EMPLOYEE", status:"ACTIVE", did:"did:securechain:employee-001", wallet:"0x7A3bC29e1F04a6D8c2B5e9A1d3F7c60Ab821E91F", created:"2026-02-18"},
+      {id:"U-004", name:"Employee B (Karthik Iyer)", email:"employeeb@securechain.demo", password:"employee123", role:"EMPLOYEE", status:"ACTIVE", did:"did:securechain:employee-002", wallet:"0x1C9dE47a2B06c8F1a4D7e9B3c5A80fD621Ba9E4C", created:"2026-03-01"}
+    ],
+    assets: [
+      {id:"SC-LAP-001", name:"Dell Latitude 5440", category:"Laptop", owner:"SecureChain Corp", assignedTo:"U-003", status:"ACTIVE", security:"VERIFIED", created:"2026-01-20", chainRecord:"TX-SC-001"},
+      {id:"SC-LAP-002", name:"HP EliteBook 840", category:"Laptop", owner:"SecureChain Corp", assignedTo:"U-004", status:"ACTIVE", security:"VERIFIED", created:"2026-01-22", chainRecord:"TX-SC-004"},
+      {id:"SC-SRV-001", name:"SecureChain Core Server", category:"Server", owner:"SecureChain Corp", assignedTo:null, status:"PROTECTED", security:"VERIFIED", created:"2026-01-10", chainRecord:"TX-SC-005"}
+    ],
+    requests: [],
+    auditLogs: [
+      {id:"AUD-001", actor:"System", role:"SYSTEM", action:"Demo environment initialized", severity:"INFO", status:"COMPLETE", ts: Date.now()-1000*60*60*5}
+    ],
+    blockchainTx: [
+      {id:"TX-SC-001", op:"Asset Registration", asset:"SC-LAP-001", actor:"System", block:185421, status:"CONFIRMED", ts: Date.now()-1000*60*60*40},
+      {id:"TX-SC-004", op:"Asset Registration", asset:"SC-LAP-002", actor:"System", block:185422, status:"CONFIRMED", ts: Date.now()-1000*60*60*38},
+      {id:"TX-SC-005", op:"Asset Registration", asset:"SC-SRV-001", actor:"System", block:185423, status:"CONFIRMED", ts: Date.now()-1000*60*60*36}
+    ],
+    securityEvents: [],
+    editGrants: [],
+    reqCounter: 0,
+    txCounter: 5,
+    audCounter: 1,
+    currentUserId: null
+  };
+}
+
+let STATE = null;
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ STATE = JSON.parse(raw); if(!STATE.editGrants) STATE.editGrants = []; return; }
+  }catch(e){}
+  STATE = seedData();
+  saveState();
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+}
+function resetState(){
+  STATE = seedData();
+  saveState();
+}
+
+/* ---------------- Helpers ---------------- */
+function fmtTime(ts){
+  const d = new Date(ts);
+  return d.toLocaleString(undefined,{month:'short',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+function userById(id){ return STATE.users.find(u=>u.id===id); }
+function assetById(id){ return STATE.assets.find(a=>a.id===id); }
+function currentUser(){ return userById(STATE.currentUserId); }
+function initials(name){ return name.split(' ').map(p=>p[0]).slice(0,2).join('').toUpperCase(); }
+
+function toast(title,msg,type){
+  type = type || 'info';
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.innerHTML = '<div class="toast-title">'+title+'</div><div class="toast-msg">'+msg+'</div>';
+  host.appendChild(el);
+  setTimeout(()=>{ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(()=>el.remove(),300); }, 3800);
+}
+
+/* ---------------- Security-model functions (enforced, not just hidden UI) ---------------- */
+function authenticate(email, password){
+  const u = STATE.users.find(x=>x.email.toLowerCase()===String(email).toLowerCase() && x.password===password);
+  return u || null;
+}
+function authorize(user, permission){
+  const perms = {
+    OWNER:["view_all","approve","reject","manage_users","manage_assets","view_audit","view_blockchain","execute_protected","reset_demo"],
+    MANAGER:["view_users","view_assets","create_request","view_own_requests","view_security_info"],
+    EMPLOYEE:["view_own_profile","view_own_assets","view_own_history"]
+  };
+  return !!(user && perms[user.role] && perms[user.role].includes(permission));
+}
+function createAuditLog(actor, role, action, severity, status){
+  STATE.audCounter++;
+  const entry = {
+    id:"AUD-"+String(STATE.audCounter).padStart(3,'0'),
+    actor, role, action, severity: severity||"INFO", status: status||"COMPLETE",
+    ts: Date.now()
+  };
+  STATE.auditLogs.unshift(entry);
+  return entry;
+}
+function createBlockchainRecord(op, assetId, actor){
+  STATE.txCounter++;
+  const tx = {
+    id:"TX-SC-"+String(STATE.txCounter).padStart(3,'0'),
+    op, asset: assetId, actor, block: 185420+STATE.txCounter, status:"CONFIRMED", ts: Date.now()
+  };
+  STATE.blockchainTx.unshift(tx);
+  return tx;
+}
+function hasEditGrant(assetId, userId){
+  return STATE.editGrants.some(g=>g.assetId===assetId && g.userId===userId && !g.used);
+}
+function grantEditAccess(assetId, userId){
+  STATE.editGrants.push({id:'GR-'+(STATE.editGrants.length+1), assetId, userId, used:false, ts:Date.now()});
+}
+function consumeEditGrant(assetId, userId){
+  const g = STATE.editGrants.find(g=>g.assetId===assetId && g.userId===userId && !g.used);
+  if(g) g.used = true;
+}
+function securityEvent(message, actor, role){
+  const ev = { id:"SEC-"+(STATE.securityEvents.length+1), message, actor, role, ts: Date.now() };
+  STATE.securityEvents.unshift(ev);
+  createAuditLog(actor, role, message, "SECURITY", "BLOCKED");
+  return ev;
+}
+
+function createRequest(requester, type, payload, reason){
+  if(!authorize(requester, "create_request")){
+    securityEvent("Unauthorized attempt to create a protected request", requester.name, requester.role);
+    toast("Access Denied","Only Managers/Admins can create requests.","error");
+    return null;
+  }
+  STATE.reqCounter++;
+  const req = {
+    id:"SC-REQ-"+String(STATE.reqCounter).padStart(3,'0'),
+    requester: requester.id,
+    role: requester.role,
+    type, payload, reason,
+    created: Date.now(),
+    status:"PENDING"
+  };
+  STATE.requests.unshift(req);
+  createAuditLog(requester.name, requester.role, "Requested "+type+" ("+req.id+")", "INFO", "PENDING");
+  createAuditLog("System", "SYSTEM", "Protected operation awaiting Owner approval ("+req.id+")", "WARNING", "PENDING");
+  saveState();
+  return req;
+}
+
+function approveRequest(reqId, owner){
+  if(!(owner && owner.role === "OWNER")){
+    securityEvent("Attempted to call approveRequest() without Owner role", owner?owner.name:"Unknown", owner?owner.role:"UNKNOWN");
+    toast("Access Denied","approveRequest() requires OWNER role.","error");
+    return {ok:false, reason:"ACCESS_DENIED"};
+  }
+  const req = STATE.requests.find(r=>r.id===reqId);
+  if(!req || req.status!=="PENDING") return {ok:false, reason:"NOT_FOUND_OR_RESOLVED"};
+
+  const execResult = executeRequest(req);
+  req.status = "APPROVED";
+  req.resolvedBy = owner.id;
+  req.resolvedAt = Date.now();
+
+  createAuditLog(owner.name, owner.role, "Approved "+req.type+" ("+req.id+")", "SUCCESS", "APPROVED");
+  const tx = createBlockchainRecord(req.type, execResult.assetId || "-", owner.name);
+  createAuditLog("System", "SYSTEM", "Blockchain record created for "+req.id+" ("+tx.id+")", "BLOCKCHAIN", "CONFIRMED");
+  req.status = "EXECUTED";
+  req.txId = tx.id;
+  saveState();
+  return {ok:true, tx, req};
+}
+
+function rejectRequest(reqId, owner, reason){
+  if(!(owner && owner.role === "OWNER")){
+    securityEvent("Attempted to call rejectRequest() without Owner role", owner?owner.name:"Unknown", owner?owner.role:"UNKNOWN");
+    return {ok:false, reason:"ACCESS_DENIED"};
+  }
+  const req = STATE.requests.find(r=>r.id===reqId);
+  if(!req || req.status!=="PENDING") return {ok:false, reason:"NOT_FOUND_OR_RESOLVED"};
+  req.status = "REJECTED";
+  req.rejectReason = reason;
+  req.resolvedBy = owner.id;
+  req.resolvedAt = Date.now();
+  createAuditLog(owner.name, owner.role, "Rejected "+req.type+" ("+req.id+") — "+reason, "WARNING", "REJECTED");
+  saveState();
+  return {ok:true, req};
+}
+
+function executeRequest(req){
+  // Applies the actual data change for an approved request. Only ever called from approveRequest().
+  const p = req.payload || {};
+  if(req.type === "Asset Transfer"){
+    const asset = assetById(p.assetId);
+    if(asset){ asset.assignedTo = p.toUserId; }
+    return {assetId: p.assetId};
+  }
+  if(req.type === "Asset Freeze"){
+    const asset = assetById(p.assetId);
+    if(asset){ asset.status = "FROZEN"; }
+    return {assetId: p.assetId};
+  }
+  if(req.type === "Asset Update"){
+    const asset = assetById(p.assetId);
+    if(asset){ asset.name = p.newName || asset.name; }
+    return {assetId: p.assetId};
+  }
+  if(req.type === "User Update"){
+    const user = userById(p.userId);
+    if(user){ user.status = p.newStatus || user.status; }
+    return {assetId:"-"};
+  }
+  if(req.type === "Asset Edit Access"){
+    grantEditAccess(p.assetId, req.requester);
+    return {assetId: p.assetId};
+  }
+  if(req.type === "Access Change"){
+    return {assetId:"-"};
+  }
+  return {assetId:"-"};
+}
+
+/* ---------------- Landing / Login transitions ---------------- */
+function showLanding(){
+  document.getElementById('landingScreen').style.display='flex';
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('app').classList.remove('shown');
+}
+function showLoginScreen(){
+  document.getElementById('landingScreen').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+}
+
+/* ---------------- Auth flow ---------------- */
+function quickLogin(email, pass){
+  document.getElementById('loginEmail').value = email;
+  document.getElementById('loginPassword').value = pass;
+  attemptLogin();
+}
+function attemptLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+  const u = authenticate(email, pass);
+  if(!u){
+    document.getElementById('loginError').style.display='block';
+    return;
+  }
+  document.getElementById('loginError').style.display='none';
+  STATE.currentUserId = u.id;
+  saveState();
+  createAuditLog(u.name, u.role, "Logged in to DEMO MODE", "INFO", "COMPLETE");
+  saveState();
+  enterApp();
+}
+function logout(){
+  const u = currentUser();
+  if(u) createAuditLog(u.name, u.role, "Logged out", "INFO", "COMPLETE");
+  STATE.currentUserId = null;
+  saveState();
+  showLanding();
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPassword').value='';
+}
+
+function enterApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('landingScreen').style.display='none';
+  const app = document.getElementById('app');
+  app.classList.add('shown');
+  const u = currentUser();
+  document.getElementById('whoAvatar').textContent = initials(u.name);
+  document.getElementById('whoName').textContent = u.name;
+  document.getElementById('whoRole').textContent = u.role;
+  buildNav();
+  navigate('dashboard');
+}
+
+/* ---------------- Navigation ---------------- */
+const NAV_ICONS = {
+  dashboard:'<path d="M4 13h6V4H4v9zM14 20h6V4h-6v16zM4 20h6v-4H4v4z"/>',
+  users:'<circle cx="9" cy="8" r="3"/><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6"/><circle cx="17" cy="8" r="2.5"/><path d="M16 14c2.8.3 5 2.4 5 6"/>',
+  assets:'<rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  requests:'<path d="M9 2h6l3 4v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6l3-4z"/><path d="M9 12h6M9 16h6"/>',
+  identity:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
+  blockchain:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><path d="M10 6.5h4M6.5 10v4M17.5 10v4M10 17.5h4"/>',
+  audit:'<path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/>',
+  security:'<path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/>'
+};
+function iconSvg(name){ return '<svg class="icon" viewBox="0 0 24 24">'+NAV_ICONS[name]+'</svg>'; }
+
+const NAV_ITEMS = [
+  {key:'dashboard', label:'Dashboard', roles:['OWNER','MANAGER','EMPLOYEE']},
+  {key:'users', label:'Users', roles:['OWNER','MANAGER']},
+  {key:'assets', label:'Assets', roles:['OWNER','MANAGER','EMPLOYEE']},
+  {key:'requests', label:'Requests', roles:['OWNER','MANAGER']},
+  {key:'identity', label:'Digital Identity', roles:['OWNER','MANAGER','EMPLOYEE']},
+  {key:'blockchain', label:'Blockchain', roles:['OWNER','MANAGER','EMPLOYEE']},
+  {key:'audit', label:'Audit Logs', roles:['OWNER','MANAGER']},
+  {key:'security', label:'Security Center', roles:['OWNER','MANAGER','EMPLOYEE']}
+];
+
+let currentView = 'dashboard';
+
+function buildNav(){
+  const u = currentUser();
+  const host = document.getElementById('navList');
+  host.innerHTML = NAV_ITEMS.filter(n=>n.roles.includes(u.role)).map(n=>
+    '<div class="nav-item" data-key="'+n.key+'" onclick="navigate(\''+n.key+'\')">'+iconSvg(n.key)+'<span>'+n.label+'</span></div>'
+  ).join('');
+}
+function navigate(key){
+  currentView = key;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.key===key));
+  render();
+}
+
+/* ---------------- Render router ---------------- */
+function render(){
+  const host = document.getElementById('viewHost');
+  const u = currentUser();
+  if(!u){ return; }
+  let html = '';
+  switch(currentView){
+    case 'dashboard': html = renderDashboard(u); break;
+    case 'users': html = renderUsers(u); break;
+    case 'assets': html = renderAssets(u); break;
+    case 'requests': html = renderRequests(u); break;
+    case 'identity': html = renderIdentity(u); break;
+    case 'blockchain': html = renderBlockchain(u); break;
+    case 'audit': html = renderAudit(u); break;
+    case 'security': html = renderSecurity(u); break;
+    default: html = renderDashboard(u);
+  }
+  host.innerHTML = html;
+}
+
+/* ---------------- Dashboard ---------------- */
+function renderDashboard(u){
+  const pending = STATE.requests.filter(r=>r.status==='PENDING').length;
+  const approved = STATE.requests.filter(r=>r.status==='APPROVED'||r.status==='EXECUTED').length;
+  const secEvents = STATE.securityEvents.length;
+  const chainRecs = STATE.blockchainTx.length;
+
+  const cards = [
+    {label:'Total Users', value:STATE.users.length, icon:'users'},
+    {label:'Total Assets', value:STATE.assets.length, icon:'assets'},
+    {label:'Pending Approvals', value:pending, icon:'requests'},
+    {label:'Approved Requests', value:approved, icon:'requests'},
+    {label:'Security Events', value:secEvents, icon:'security'},
+    {label:'Blockchain Records', value:chainRecs, icon:'blockchain'}
+  ];
+
+  const barMax = Math.max(1, ...STATE.assets.map(()=>1));
+  const catCounts = {};
+  STATE.assets.forEach(a=>{ catCounts[a.category] = (catCounts[a.category]||0)+1; });
+  const bars = Object.keys(catCounts).map(k=>({label:k, value:catCounts[k]}));
+  const maxBar = Math.max(1, ...bars.map(b=>b.value));
+
+  let ownerBlock = '';
+  if(u.role === 'OWNER'){
+    const pendingReqs = STATE.requests.filter(r=>r.status==='PENDING');
+    ownerBlock = `
+      <div class="section-title">${iconSvg('requests')} Pending Approval Requests</div>
+      ${pendingReqs.length? renderRequestTable(pendingReqs, true) : emptyState('No pending approvals right now.')}
+    `;
+  } else if(u.role === 'MANAGER'){
+    const mine = STATE.requests.filter(r=>r.requester===u.id).slice(0,5);
+    ownerBlock = `
+      <div class="section-title">${iconSvg('requests')} Your Recent Requests</div>
+      ${mine.length? renderRequestTable(mine, false) : emptyState('You have not submitted any requests yet. Go to Assets or Requests to create one.')}
+    `;
+  } else {
+    const myAssets = STATE.assets.filter(a=>a.assignedTo===u.id);
+    ownerBlock = `
+      <div class="section-title">${iconSvg('assets')} Your Assigned Assets</div>
+      ${myAssets.length? renderAssetGrid(myAssets, u) : emptyState('No assets assigned to you.')}
+    `;
+  }
+
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Welcome, ${u.name.split(' ')[0]}</div><div class="page-sub">${u.role} · SecureChain Control Center</div></div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:8px;">
+      ${cards.map(c=>`
+        <div class="card stat-card glow">
+          <div class="stat-top"><span class="stat-label">${c.label}</span><span class="stat-icon">${iconSvg(c.icon)}</span></div>
+          <div class="stat-value">${c.value}</div>
+          <div class="stat-foot">Live demo data</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Assets by Category</div>
+        <div class="bar-chart">
+          ${bars.map(b=>`
+            <div class="bar-col">
+              <div class="bar-fill" style="height:${(b.value/maxBar*100)}%"></div>
+              <div class="bar-label">${b.label}<br>${b.value}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title" style="margin-top:0;">Recent Audit Activity</div>
+        ${renderMiniTimeline(STATE.auditLogs.slice(0,4))}
+      </div>
+    </div>
+
+    ${ownerBlock}
+  `;
+}
+function emptyState(msg){
+  return `<div class="card" style="text-align:center;color:var(--muted);padding:30px;">${msg}</div>`;
+}
+function renderMiniTimeline(logs){
+  if(!logs.length) return emptyState('No activity yet.');
+  return '<div class="timeline">'+logs.map(l=>`
+    <div class="tl-item">
+      <div class="tl-dot" style="background:${sevColor(l.severity)}22;color:${sevColor(l.severity)}">●</div>
+      <div class="tl-body">
+        <div class="tl-top"><span class="tl-msg">${l.action}</span><span class="badge ${l.severity.toLowerCase()}">${l.severity}</span></div>
+        <div class="tl-meta">${l.actor} · ${l.role} · ${fmtTime(l.ts)}</div>
+      </div>
+    </div>`).join('')+'</div>';
+}
+function sevColor(sev){
+  return {INFO:'#3d6fe0', WARNING:'#c99a3e', SUCCESS:'#2fa872', BLOCKCHAIN:'#7d72d6', SECURITY:'#dd5b64'}[sev] || '#8991a3';
+}
+
+/* ---------------- Users ---------------- */
+function renderUsers(u){
+  if(!authorize(u,'view_users') && u.role!=='OWNER'){
+    return accessDeniedPanel();
+  }
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Users</div><div class="page-sub">All identities registered in SecureChain (demo data)</div></div>
+      ${u.role==='OWNER'? `<button class="btn btn-primary" onclick="openRegisterUserModal()">+ Register Employee</button>`:''}
+    </div>
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>DID</th><th></th></tr></thead>
+      <tbody>
+        ${STATE.users.map(x=>`
+          <tr class="row-hover">
+            <td class="mono">${x.id}</td>
+            <td>${x.name}</td>
+            <td class="mono">${x.email}</td>
+            <td><span class="badge info">${x.role}</span></td>
+            <td><span class="badge active">${x.status}</span></td>
+            <td class="mono">${x.did}</td>
+            <td><button class="btn btn-outline btn-sm" onclick="openUserModal('${x.id}')">View</button></td>
+          </tr>`).join('')}
+      </tbody>
+    </table></div></div>
+  `;
+}
+function openUserModal(id){
+  const x = userById(id);
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>${x.name}</h3>
+    <div class="modal-sub">User profile — demo data</div>
+    <div class="kv"><span>User ID</span><span class="mono">${x.id}</span></div>
+    <div class="kv"><span>Email</span><span class="mono">${x.email}</span></div>
+    <div class="kv"><span>Role</span><span class="badge info">${x.role}</span></div>
+    <div class="kv"><span>Status</span><span class="badge active">${x.status}</span></div>
+    <div class="kv"><span>DID</span><span class="mono">${x.did}</span></div>
+    <div class="kv"><span>Wallet</span><span class="mono">${x.wallet.slice(0,6)}...${x.wallet.slice(-4)}</span></div>
+    <div class="kv"><span>Created</span><span>${x.created}</span></div>
+  `);
+}
+function openRegisterUserModal(){
+  const owner = currentUser();
+  if(!authorize(owner,'manage_users')){ toast('Access Denied','Only the Owner can register new users.','error'); return; }
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Register New User</h3>
+    <div class="modal-sub">Directly onboard a new identity into SecureChain — Owner privilege, no approval required.</div>
+    <div class="field"><label>Full Name</label><input id="ru_name" placeholder="e.g. Ananya Rao"></div>
+    <div class="field"><label>Email</label><input id="ru_email" placeholder="name@securechain.demo"></div>
+    <div class="field"><label>Temporary Password</label><input id="ru_password" value="changeme123"></div>
+    <div class="field"><label>Role</label>
+      <select id="ru_role">
+        <option value="EMPLOYEE">Employee</option>
+        <option value="MANAGER">Manager / Admin</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRegisterUser()">Register User</button>
+    </div>
+  `);
+}
+function generateUserId(){
+  const nums = STATE.users.map(x=>{ const m=x.id.match(/-(\d+)$/); return m? parseInt(m[1],10):0; });
+  const next = (nums.length? Math.max(...nums):0)+1;
+  return 'U-'+String(next).padStart(3,'0');
+}
+function submitRegisterUser(){
+  const owner = currentUser();
+  if(!authorize(owner,'manage_users')){ toast('Access Denied','Only the Owner can register new users.','error'); return; }
+  const name = document.getElementById('ru_name').value.trim();
+  const email = document.getElementById('ru_email').value.trim();
+  const password = document.getElementById('ru_password').value.trim() || 'changeme123';
+  const role = document.getElementById('ru_role').value;
+  if(!name || !email){ toast('Missing Info','Name and email are required.','error'); return; }
+  if(STATE.users.some(x=>x.email.toLowerCase()===email.toLowerCase())){ toast('Duplicate Email','A user with this email already exists.','error'); return; }
+  const id = generateUserId();
+  const newUser = {
+    id, name, email, password, role, status:'ACTIVE',
+    did:'did:securechain:'+role.toLowerCase()+'-'+id.slice(2),
+    wallet:'0x'+Array.from({length:40},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join(''),
+    created:new Date().toISOString().slice(0,10)
+  };
+  STATE.users.push(newUser);
+  createAuditLog(owner.name, owner.role, 'Registered new '+role+' — '+name+' ('+id+')', 'SUCCESS','COMPLETE');
+  saveState();
+  closeModal();
+  toast('User Registered', name+' added as '+role+'.', 'success');
+  render();
+}
+
+/* ---------------- Assets ---------------- */
+function renderAssetGrid(list, u){
+  return '<div class="asset-grid">'+list.map(a=>{
+    const assignee = a.assignedTo? userById(a.assignedTo) : null;
+    return `
+    <div class="asset-card" onclick="openAssetModal('${a.id}')">
+      <div class="asset-id">${a.id}</div>
+      <div class="asset-name">${a.name}</div>
+      <div class="asset-meta">${a.category} · ${assignee? assignee.name : 'Unassigned'}</div>
+      <div class="asset-foot">
+        <span class="badge ${a.status==='PROTECTED'?'protected':(a.status==='FROZEN'?'warning':'active')}">${a.status}</span>
+        <span class="badge verified">${a.security}</span>
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+function renderAssets(u){
+  let list = STATE.assets;
+  if(u.role==='EMPLOYEE') list = STATE.assets.filter(a=>a.assignedTo===u.id);
+  return `
+    <div class="topbar">
+      <div><div class="page-title">Assets</div><div class="page-sub">${u.role==='EMPLOYEE'?'Assets assigned to you':'All registered SecureChain assets'}</div></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${u.role==='OWNER'? `<button class="btn btn-primary" onclick="openCreateAssetModal()">+ Create Asset</button>`:''}
+        ${u.role==='MANAGER'? `<button class="btn btn-primary" onclick="openRequestModal('Asset Transfer')">+ Request Transfer</button>`:''}
+      </div>
+    </div>
+    ${list.length? renderAssetGrid(list,u) : emptyState('No assets to display.')}
+  `;
+}
+function openAssetModal(id){
+  const a = assetById(id);
+  const assignee = a.assignedTo? userById(a.assignedTo) : null;
+  const u = currentUser();
+  let actions = '';
+  if(u.role==='OWNER'){
+    actions = `
+      <div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="closeModal();openEditAssetForm('${a.id}',true)">Edit Asset</button>
+      </div>`;
+  } else if(u.role==='MANAGER'){
+    const granted = hasEditGrant(a.id, u.id);
+    actions = `
+      <div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap;">
+        ${granted
+          ? `<button class="btn btn-success btn-sm" onclick="closeModal();openEditAssetForm('${a.id}',false)">Edit Asset (Access Granted)</button>`
+          : `<button class="btn btn-outline btn-sm" onclick="closeModal();openRequestModal('Asset Edit Access','${a.id}')">Request Edit Access</button>`}
+        <button class="btn btn-outline btn-sm" onclick="closeModal();openRequestModal('Asset Transfer','${a.id}')">Request Transfer</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal();openRequestModal('Asset Freeze','${a.id}')">Request Freeze</button>
+      </div>
+      ${granted? `<div class="login-note" style="margin-top:14px;">The Owner has granted you one-time edit access to this asset. Saving your edit will consume this permission.</div>`:''}`;
+  } else if(u.role==='EMPLOYEE'){
+    actions = `<div class="locked-panel" style="margin-top:14px;"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><div>Direct transfer/freeze/edit controls are <b>disabled</b> for Employees. Contact a Manager to request changes.</div></div>`;
+  }
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>${a.name}</h3>
+    <div class="modal-sub">${a.id} · ${a.category}</div>
+    <div class="kv"><span>Owner</span><span>${a.owner}</span></div>
+    <div class="kv"><span>Assigned To</span><span>${assignee? assignee.name : 'Unassigned'}</span></div>
+    <div class="kv"><span>Status</span><span class="badge ${a.status==='PROTECTED'?'protected':(a.status==='FROZEN'?'warning':'active')}">${a.status}</span></div>
+    <div class="kv"><span>Security State</span><span class="badge verified">${a.security}</span></div>
+    <div class="kv"><span>Created</span><span>${a.created}</span></div>
+    <div class="kv"><span>Blockchain Record</span><span class="mono">${a.chainRecord}</span></div>
+    ${actions}
+  `);
+}
+function openEditAssetForm(id, direct){
+  const a = assetById(id);
+  const u = currentUser();
+  if(!direct && !hasEditGrant(a.id, u.id)){
+    toast('Access Denied','You do not have edit permission for this asset. Request access from the Owner.','error');
+    return;
+  }
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Edit Asset — ${a.id}</h3>
+    <div class="modal-sub">${direct? 'Owner direct edit — changes apply immediately, no approval needed.' : 'Editing under Owner-granted permission. This access is consumed once you save.'}</div>
+    <div class="field"><label>Name</label><input id="ea_name" value="${a.name}"></div>
+    <div class="field"><label>Category</label><input id="ea_category" value="${a.category}"></div>
+    <div class="field"><label>Status</label>
+      <select id="ea_status">
+        ${['ACTIVE','FROZEN','PROTECTED'].map(s=>`<option value="${s}" ${a.status===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAssetEdit('${a.id}',${direct})">Save Changes</button>
+    </div>
+  `);
+}
+function saveAssetEdit(id, direct){
+  const u = currentUser();
+  const a = assetById(id);
+  if(!a) return;
+  if(!direct && !hasEditGrant(a.id, u.id)){
+    toast('Access Denied','Edit permission is required from the Owner.','error');
+    closeModal();
+    return;
+  }
+  a.name = document.getElementById('ea_name').value.trim() || a.name;
+  a.category = document.getElementById('ea_category').value.trim() || a.category;
+  a.status = document.getElementById('ea_status').value;
+  if(!direct) consumeEditGrant(a.id, u.id);
+  createAuditLog(u.name, u.role, 'Edited asset '+a.id+(direct? ' (Owner direct edit)':' (under granted permission)'), 'SUCCESS','COMPLETE');
+  const tx = createBlockchainRecord('Asset Edit', a.id, u.name);
+  createAuditLog('System','SYSTEM','Blockchain record created for asset edit ('+tx.id+')','BLOCKCHAIN','CONFIRMED');
+  saveState();
+  closeModal();
+  toast('Asset Updated', a.id+' updated successfully.', 'success');
+  render();
+}
+function openCreateAssetModal(){
+  const owner = currentUser();
+  if(!authorize(owner,'manage_assets')){ toast('Access Denied','Only the Owner can register new assets.','error'); return; }
+  const employees = STATE.users.filter(x=>x.role!=='OWNER');
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Register New Asset</h3>
+    <div class="modal-sub">Add a new asset directly to the SecureChain registry — Owner privilege.</div>
+    <div class="field"><label>Asset Name</label><input id="ca_name" placeholder="e.g. MacBook Pro 16"></div>
+    <div class="field"><label>Category</label><input id="ca_category" placeholder="e.g. Laptop, Server, Mobile" value="Laptop"></div>
+    <div class="field"><label>Assign To (optional)</label>
+      <select id="ca_assignee"><option value="">Unassigned</option>${employees.map(x=>`<option value="${x.id}">${x.name} (${x.role})</option>`).join('')}</select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCreateAsset()">Create Asset</button>
+    </div>
+  `);
+}
+function generateAssetId(category){
+  const tag = (category||'AST').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase() || 'AST';
+  const nums = STATE.assets.map(a=>{ const m=a.id.match(/-(\d+)$/); return m? parseInt(m[1],10):0; });
+  const next = (nums.length? Math.max(...nums):0)+1;
+  return 'SC-'+tag+'-'+String(next).padStart(3,'0');
+}
+function submitCreateAsset(){
+  const owner = currentUser();
+  if(!authorize(owner,'manage_assets')){ toast('Access Denied','Only the Owner can register new assets.','error'); return; }
+  const name = document.getElementById('ca_name').value.trim();
+  const category = document.getElementById('ca_category').value.trim() || 'General';
+  const assignedTo = document.getElementById('ca_assignee').value || null;
+  if(!name){ toast('Missing Info','Asset name is required.','error'); return; }
+  const id = generateAssetId(category);
+  const newAsset = {
+    id, name, category, owner:'SecureChain Corp', assignedTo, status:'ACTIVE', security:'VERIFIED',
+    created:new Date().toISOString().slice(0,10), chainRecord:null
+  };
+  STATE.assets.push(newAsset);
+  const tx = createBlockchainRecord('Asset Registration', id, owner.name);
+  newAsset.chainRecord = tx.id;
+  createAuditLog(owner.name, owner.role, 'Registered new asset '+id+' — '+name, 'SUCCESS','COMPLETE');
+  createAuditLog('System','SYSTEM','Blockchain record created for '+id+' ('+tx.id+')','BLOCKCHAIN','CONFIRMED');
+  saveState();
+  closeModal();
+  toast('Asset Registered', id+' added to the registry.', 'success');
+  render();
+}
+
+/* ---------------- Requests / Request Center ---------------- */
+function renderRequestTable(list, ownerView){
+  return `<div class="table-wrap"><table>
+    <thead><tr><th>ID</th><th>Requester</th><th>Operation</th><th>Reason</th><th>Created</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      ${list.map(r=>{
+        const req = userById(r.requester);
+        return `<tr class="row-hover">
+          <td class="mono">${r.id}</td>
+          <td>${req?req.name:r.requester}<br><span class="badge info" style="margin-top:4px;">${r.role}</span></td>
+          <td>${r.type}</td>
+          <td>${r.reason||'-'}</td>
+          <td>${fmtTime(r.created)}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td class="actions-cell">
+            <button class="btn btn-outline btn-sm" onclick="openReviewModal('${r.id}')">View</button>
+            ${ownerView && r.status==='PENDING' ? `
+              <button class="btn btn-success btn-sm" onclick="doApprove('${r.id}')">Approve</button>
+              <button class="btn btn-danger btn-sm" onclick="openRejectModal('${r.id}')">Reject</button>` : '' }
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table></div>`;
+}
+function statusBadge(s){
+  const map = {PENDING:'pending',APPROVED:'approved',REJECTED:'rejected',EXECUTED:'executed'};
+  return `<span class="badge ${map[s]||'info'}">${s}</span>`;
+}
+function renderRequests(u){
+  if(u.role==='OWNER'){
+    return `
+      <div class="topbar"><div><div class="page-title">Request Center</div><div class="page-sub">All requests across the organization</div></div></div>
+      ${STATE.requests.length? renderRequestTable(STATE.requests, true) : emptyState('No requests yet.')}
+    `;
+  }
+  if(u.role==='MANAGER'){
+    const mine = STATE.requests.filter(r=>r.requester===u.id);
+    return `
+      <div class="topbar">
+        <div><div class="page-title">Request Center</div><div class="page-sub">Create and track your protected-operation requests</div></div>
+        <button class="btn btn-primary" onclick="openRequestModal('Asset Transfer')">+ New Request</button>
+      </div>
+      <div class="grid grid-3" style="margin-bottom:20px;">
+        <div class="card" style="cursor:pointer" onclick="openRequestModal('Asset Transfer')"><b>Asset Transfer</b><div class="page-sub">Reassign an asset to another employee</div></div>
+        <div class="card" style="cursor:pointer" onclick="openRequestModal('Asset Freeze')"><b>Asset Freeze</b><div class="page-sub">Freeze an asset pending investigation</div></div>
+        <div class="card" style="cursor:pointer" onclick="openRequestModal('Asset Update')"><b>Asset Update</b><div class="page-sub">Update asset metadata</div></div>
+        <div class="card" style="cursor:pointer" onclick="openRequestModal('Asset Edit Access')"><b>Edit Access</b><div class="page-sub">Request permission to edit an asset yourself</div></div>
+        <div class="card" style="cursor:pointer" onclick="openRequestModal('User Update')"><b>User Update</b><div class="page-sub">Change a user's status</div></div>
+        <div class="card" style="cursor:pointer" onclick="openRequestModal('Access Change')"><b>Access Change</b><div class="page-sub">Request an access-level change</div></div>
+      </div>
+      <div class="section-title">Your Requests</div>
+      ${mine.length? renderRequestTable(mine,false) : emptyState('You have not created any requests yet.')}
+    `;
+  }
+  return accessDeniedPanel();
+}
+function accessDeniedPanel(){
+  return `<div class="locked-panel"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg><div><b>Access restricted.</b> Your role does not have permission to view this section.</div></div>`;
+}
+
+function openRequestModal(type, assetId){
+  const u = currentUser();
+  if(!authorize(u,'create_request')){ toast('Access Denied','You are not permitted to create requests.','error'); return; }
+  const assets = STATE.assets;
+  const users = STATE.users.filter(x=>x.role==='EMPLOYEE');
+  let fields = '';
+  if(type==='Asset Transfer'){
+    fields = `
+      <div class="field"><label>Asset</label>
+        <select id="rf_asset">${assets.map(a=>`<option value="${a.id}" ${assetId===a.id?'selected':''}>${a.id} — ${a.name}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>Transfer To</label>
+        <select id="rf_to">${users.map(x=>`<option value="${x.id}">${x.name}</option>`).join('')}</select>
+      </div>`;
+  } else if(type==='Asset Freeze' || type==='Asset Update' || type==='Asset Edit Access'){
+    fields = `<div class="field"><label>Asset</label>
+        <select id="rf_asset">${assets.map(a=>`<option value="${a.id}" ${assetId===a.id?'selected':''}>${a.id} — ${a.name}</option>`).join('')}</select></div>`;
+    if(type==='Asset Update'){
+      fields += `<div class="field"><label>New Name</label><input id="rf_name" placeholder="Updated asset name"></div>`;
+    }
+    if(type==='Asset Edit Access'){
+      fields += `<div class="login-note" style="margin-top:2px;">This does not change the asset itself — it asks the Owner for permission to edit it yourself. Once approved, an "Edit Asset" option unlocks for this asset.</div>`;
+    }
+  } else if(type==='User Update'){
+    fields = `<div class="field"><label>User</label>
+        <select id="rf_user">${STATE.users.filter(x=>x.role!=='OWNER').map(x=>`<option value="${x.id}">${x.name}</option>`).join('')}</select></div>
+      <div class="field"><label>New Status</label>
+        <select id="rf_status"><option>ACTIVE</option><option>SUSPENDED</option><option>UNDER_REVIEW</option></select></div>`;
+  } else {
+    fields = `<div class="field"><label>Details</label><input id="rf_detail" placeholder="Describe the access change"></div>`;
+  }
+
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Request: ${type}</h3>
+    <div class="modal-sub">This request will require Owner approval before execution.</div>
+    ${fields}
+    <div class="field"><label>Reason</label><textarea id="rf_reason" placeholder="e.g. Department reassignment"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitRequest('${type}')">Submit Request</button>
+    </div>
+  `);
+}
+function submitRequest(type){
+  const u = currentUser();
+  const reason = document.getElementById('rf_reason').value || '(no reason provided)';
+  let payload = {};
+  if(type==='Asset Transfer'){
+    const assetId = document.getElementById('rf_asset').value;
+    const toUserId = document.getElementById('rf_to').value;
+    payload = {assetId, toUserId};
+  } else if(type==='Asset Freeze'){
+    payload = {assetId: document.getElementById('rf_asset').value};
+  } else if(type==='Asset Update'){
+    payload = {assetId: document.getElementById('rf_asset').value, newName: document.getElementById('rf_name').value};
+  } else if(type==='Asset Edit Access'){
+    payload = {assetId: document.getElementById('rf_asset').value};
+  } else if(type==='User Update'){
+    payload = {userId: document.getElementById('rf_user').value, newStatus: document.getElementById('rf_status').value};
+  } else {
+    payload = {detail: document.getElementById('rf_detail')?document.getElementById('rf_detail').value:''};
+  }
+  const req = createRequest(u, type, payload, reason);
+  closeModal();
+  if(req){
+    toast('Request Submitted', req.id+' created — PENDING OWNER APPROVAL', 'success');
+    render();
+  }
+}
+
+function openReviewModal(reqId){
+  const r = STATE.requests.find(x=>x.id===reqId);
+  const req = userById(r.requester);
+  const u = currentUser();
+  let diff = '';
+  if(r.type==='Asset Transfer'){
+    const asset = assetById(r.payload.assetId);
+    const fromUser = asset? (userById(asset.assignedTo)||{name:'Unassigned'}) : {name:'-'};
+    const toUser = userById(r.payload.toUserId);
+    diff = `<div class="diff-box">
+      <div class="diff-col before"><div class="diff-label">Before</div>Assigned to:<br><b>${fromUser.name}</b></div>
+      <div class="diff-col after"><div class="diff-label">After</div>Assigned to:<br><b>${toUser?toUser.name:'-'}</b></div>
+    </div>`;
+  }
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>${r.id}</h3>
+    <div class="modal-sub">${r.type} · ${statusBadge(r.status)}</div>
+    <div class="kv"><span>Requester</span><span>${req?req.name:r.requester} (${r.role})</span></div>
+    <div class="kv"><span>Reason</span><span>${r.reason}</span></div>
+    <div class="kv"><span>Created</span><span>${fmtTime(r.created)}</span></div>
+    ${diff}
+    ${r.txId? `<div class="kv"><span>Blockchain Record</span><span class="mono">${r.txId}</span></div>`:''}
+    ${(u.role==='OWNER' && r.status==='PENDING') ? `
+      <div class="modal-actions">
+        <button class="btn btn-danger" onclick="closeModal();openRejectModal('${r.id}')">Reject</button>
+        <button class="btn btn-success" onclick="doApprove('${r.id}')">Approve</button>
+      </div>` : ''}
+  `);
+}
+function doApprove(reqId){
+  const u = currentUser();
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Confirm Approval</h3>
+    <div class="modal-sub">This will execute the operation, write an audit log entry, and create a simulated blockchain record.</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-success" onclick="confirmApprove('${reqId}')">Confirm Approve</button>
+    </div>
+  `);
+}
+function confirmApprove(reqId){
+  const u = currentUser();
+  const result = approveRequest(reqId, u);
+  closeModal();
+  if(result.ok){
+    toast('Approval Successful', 'Operation executed · Audit log created · '+result.tx.id+' recorded', 'success');
+    render();
+  } else {
+    toast('Action Failed', result.reason, 'error');
+  }
+}
+function openRejectModal(reqId){
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Reject Request</h3>
+    <div class="modal-sub">Provide a reason for rejection.</div>
+    <div class="field"><label>Rejection Reason</label><textarea id="rejectReason" placeholder="e.g. Insufficient justification"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmReject('${reqId}')">Confirm Reject</button>
+    </div>
+  `);
+}
+function confirmReject(reqId){
+  const u = currentUser();
+  const reason = document.getElementById('rejectReason').value || '(no reason given)';
+  const result = rejectRequest(reqId, u, reason);
+  closeModal();
+  if(result.ok){
+    toast('Request Rejected', reqId+' marked as REJECTED', 'warning');
+    render();
+  } else {
+    toast('Action Failed', result.reason, 'error');
+  }
+}
+
+/* ---------------- Digital Identity ---------------- */
+function renderIdentity(u){
+  const targets = u.role==='OWNER' ? STATE.users : [u];
+  return `
+    <div class="topbar"><div><div class="page-title">Digital Identity (DID)</div><div class="page-sub">Decentralized identifiers &amp; verification status — simulated</div></div></div>
+    <div class="grid grid-2">
+      ${targets.map(x=>`
+        <div class="card glow">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <b>${x.name}</b><span class="badge verified">VERIFIED</span>
+          </div>
+          <div class="kv"><span>DID</span><span class="mono">${x.did}</span></div>
+          <div class="kv"><span>Wallet</span><span class="mono">${x.wallet.slice(0,6)}...${x.wallet.slice(-4)}</span></div>
+          <div class="kv"><span>Identity Created</span><span>${x.created}</span></div>
+          <div class="kv"><span>Verification</span><span class="badge verified">VERIFIED</span></div>
+        </div>`).join('')}
+    </div>
+    <div class="login-note" style="margin-top:20px;">A DID (Decentralized Identifier) represents a self-sovereign identity anchored to a blockchain wallet rather than a central authority. In DEMO MODE no real private keys are requested, stored, or transmitted.</div>
+  `;
+}
+
+/* ---------------- Blockchain Explorer ---------------- */
+function renderBlockchain(u){
+  return `
+    <div class="topbar"><div><div class="page-title">Blockchain Explorer</div><div class="page-sub">Network: DEMO TESTNET · SIMULATED TESTNET RECORD</div></div></div>
+    <div class="demo-banner">${iconSvg('blockchain')} These are simulated transactions for demonstration purposes only — not real Sepolia/Ethereum transactions.</div>
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>TX ID</th><th>Operation</th><th>Asset</th><th>Actor</th><th>Block</th><th>Network</th><th>Status</th><th>Timestamp</th></tr></thead>
+      <tbody>
+        ${STATE.blockchainTx.map(t=>`
+          <tr class="row-hover">
+            <td class="mono">${t.id}</td>
+            <td>${t.op}</td>
+            <td class="mono">${t.asset}</td>
+            <td>${t.actor}</td>
+            <td class="mono">#${t.block}</td>
+            <td><span class="badge blockchain">DEMO TESTNET</span></td>
+            <td><span class="badge approved">${t.status}</span></td>
+            <td>${fmtTime(t.ts)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table></div></div>
+  `;
+}
+
+/* ---------------- Audit Log ---------------- */
+function renderAudit(u){
+  if(u.role==='EMPLOYEE') return accessDeniedPanel();
+  return `
+    <div class="topbar"><div><div class="page-title">Audit &amp; Security Log</div><div class="page-sub">Full chronological event history</div></div></div>
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th>Event ID</th><th>Actor</th><th>Role</th><th>Action</th><th>Severity</th><th>Status</th><th>Timestamp</th></tr></thead>
+      <tbody>
+        ${STATE.auditLogs.map(l=>`
+          <tr class="row-hover">
+            <td class="mono">${l.id}</td>
+            <td>${l.actor}</td>
+            <td><span class="badge info">${l.role}</span></td>
+            <td>${l.action}</td>
+            <td><span class="badge ${l.severity.toLowerCase()}">${l.severity}</span></td>
+            <td>${l.status}</td>
+            <td>${fmtTime(l.ts)}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table></div></div>
+  `;
+}
+
+/* ---------------- Security Center ---------------- */
+function renderSecurity(u){
+  const controls = [
+    ['JWT Authentication','ENABLED (DEMO)'],
+    ['Role-Based Access Control','ENABLED'],
+    ['Owner Approval','ENABLED'],
+    ['Separation of Duties','ENABLED'],
+    ['Audit Logging','ENABLED'],
+    ['Blockchain Integrity','SIMULATED'],
+    ['Protected Operations','ENABLED']
+  ];
+  const resetBlock = u.role==='OWNER' ? `
+    <div class="section-title">Owner Settings</div>
+    <div class="card" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div><b>Reset Demo Data</b><div class="page-sub">Restores the original demo dataset (users, assets, requests, logs).</div></div>
+      <button class="btn btn-danger" onclick="openResetModal()">Reset Demo</button>
+    </div>` : '';
+
+  return `
+    <div class="topbar"><div><div class="page-title">Security Center</div><div class="page-sub">Live enforcement status &amp; interactive security test</div></div></div>
+    <div class="section-title">Security Controls</div>
+    <div class="security-grid">
+      ${controls.map(c=>`<div class="sec-row"><span class="sec-name">${c[0]}</span><span class="sec-status">✓ ${c[1]}</span></div>`).join('')}
+    </div>
+
+    <div class="section-title">Interactive Security Test</div>
+    <div class="card">
+      <div style="margin-bottom:12px;color:var(--muted);font-size:13px;">Simulate a Manager attempting to directly execute a protected Owner-level operation, bypassing approval.</div>
+      <button class="btn btn-danger" onclick="simulateUnauthorized()">Simulate Unauthorized Action</button>
+      <div id="secTestResult"></div>
+    </div>
+
+    ${STATE.securityEvents.length? `
+      <div class="section-title">Recent Security Events</div>
+      ${renderMiniTimeline(STATE.securityEvents.map(e=>({action:e.message, actor:e.actor, role:e.role, severity:'SECURITY', ts:e.ts})))}
+    `:''}
+
+    ${resetBlock}
+  `;
+}
+function simulateUnauthorized(){
+  const u = currentUser();
+  // deliberately call approveRequest with a non-owner to demonstrate the enforced check
+  const fakeReq = STATE.requests.find(r=>r.status==='PENDING') || {id:'N/A'};
+  const result = approveRequest(fakeReq.id, {name:u.name, role:'MANAGER', id:u.id});
+  saveState();
+  document.getElementById('secTestResult').innerHTML = `
+    <div class="locked-panel" style="margin-top:16px;">
+      <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+      <div>
+        <b>ACCESS DENIED</b><br>
+        Reason: Manager attempted to directly execute a protected Owner-level operation.<br>
+        Security Rule: Protected operations require Owner approval.
+      </div>
+    </div>`;
+  toast('Security Violation Blocked','Unauthorized operation blocked and logged.','error');
+  render();
+}
+function openResetModal(){
+  showModal(`
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h3>Reset Demo Data?</h3>
+    <div class="modal-sub">This restores the original demo dataset and clears all requests, audit logs, and blockchain records created during this session. This cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmReset()">Reset Demo</button>
+    </div>
+  `);
+}
+function confirmReset(){
+  resetState();
+  closeModal();
+  toast('Demo Reset','Original demo dataset restored.','success');
+  logout();
+}
+
+/* ---------------- Modal engine ---------------- */
+function showModal(innerHtml){
+  closeModal();
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.id = 'activeOverlay';
+  overlay.onclick = (e)=>{ if(e.target===overlay) closeModal(); };
+  overlay.innerHTML = '<div class="modal">'+innerHtml+'</div>';
+  document.body.appendChild(overlay);
+}
+function closeModal(){
+  const el = document.getElementById('activeOverlay');
+  if(el) el.remove();
+}
+
+/* ---------------- Boot ---------------- */
+loadState();
+if(STATE.currentUserId && userById(STATE.currentUserId)){
+  enterApp();
+} else {
+  showLanding();
+}
+document.getElementById('loginPassword').addEventListener('keydown', (e)=>{ if(e.key==='Enter') attemptLogin(); });
+</script>
+</body>
+</html>
